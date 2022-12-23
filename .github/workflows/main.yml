@@ -6,7 +6,6 @@ on:
       - main
     types:
       - closed
-      
 jobs:
   update-services:
     runs-on: ubuntu-latest
@@ -22,5 +21,5 @@ jobs:
 #     - run: git add . && git commit -m "touching new file for PR $(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')"
     - run: |
         git add .
-        git commit -m "touching file for PR {{ github.event.pull_request.number }}"
+        git commit -m "touching file for PR ${{ github.event.pull_request.number }}"
         git push origin main
