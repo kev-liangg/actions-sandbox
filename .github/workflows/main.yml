@@ -6,7 +6,6 @@ on:
       - main
     types:
       - closed
-
 jobs:
   update-services:
     runs-on: ubuntu-latest
