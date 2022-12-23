@@ -3,11 +3,7 @@ name: Identify and Commit on PR Merge
 on:
   pull_request:
     branches:
-      - master
-    types:
-      # all merged PRs are closed, no need to run if not closed
-     - closed
-
+      - main
 
 jobs:
   update-services:
