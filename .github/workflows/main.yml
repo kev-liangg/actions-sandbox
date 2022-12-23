@@ -16,7 +16,7 @@ jobs:
         fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
     - run: echo "build = ${{ github.event.pull_request.number }}" > newFile
     - run: |
-        git config user.name "GitHub Actions Bot"
+        git config user.name "Version Auto Increment"
         git config user.email "<>"
 #     - run: git add . && git commit -m "touching new file for PR $(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')"
     - run: |
