@@ -133,6 +133,6 @@ jobs:
         name: Commit and Push
         run: |
           git add .
-          git git diff-index --quiet HEAD || \
+          git diff-index --quiet HEAD || \
             git commit -m "Version Increment for PR #${{ github.event.pull_request.number }}"
           git push -f origin ${{ github.event.pull_request.head.ref }}
