@@ -8,14 +8,14 @@ on:
       - main
     types:
       # all merged PRs are closed, no need to run if not closed
-      # - closed
+      - closed
 
 
 jobs:
   update-services:
     runs-on: ubuntu-latest
     # verify actual merge in case PR closed without merging
-    # if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true
     steps:
       -
         name: Determine Highest-Precedent Version Label
@@ -135,5 +135,4 @@ jobs:
           git add .
           git diff-index --quiet HEAD || \
             git commit -m "Version Increment for PR #${{ github.event.pull_request.number }}"
-          git branch -a
-          git push -f origin/${{ github.event.pull_request.head.ref }}
+          git push -f origin main
