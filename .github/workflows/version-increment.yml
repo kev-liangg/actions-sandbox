@@ -105,6 +105,7 @@ jobs:
               awk 'BEGIN{FS="="} {print $1"="(/build/ ? $2=${{ github.event.pull_request.number }} : $2+=0)}' "$pr" > $pr
             }
           done
+          exit 0
 
       -
         name: Update Build Numbers (With Common Changes)
