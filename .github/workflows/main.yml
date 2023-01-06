@@ -3,7 +3,7 @@ name: Identify and Commit on PR Merge
 on:
   pull_request:
     branches:
-      - main
+      - main-placeholder
     types:
       - closed
 jobs:
