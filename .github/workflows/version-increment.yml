@@ -1,0 +1,136 @@
+# Increments the versions specified in build.gradle, on merge to master
+
+name: Microservice Version Increment
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      # all merged PRs are closed, no need to run if not closed
+      # - closed
+
+
+jobs:
+  update-services:
+    runs-on: ubuntu-latest
+    # verify actual merge in case PR closed without merging
+    # if: github.event.pull_request.merged == true
+    steps:
+      -
+        name: Determine Highest-Precedent Version Label
+        id: get-label
+        run: >
+          [ ${{ contains(github.event.pull_request.labels.*.name, 'major') }} = 'true' ]
+          && (echo 'VERSION_LABEL=major' >> $GITHUB_ENV)
+          || ([ ${{ contains(github.event.pull_request.labels.*.name, 'minor') }} = 'true' ]
+          && (echo 'VERSION_LABEL=minor' >> $GITHUB_ENV)
+          || ([ ${{ contains(github.event.pull_request.labels.*.name, 'patch') }} = 'true' ]
+          && (echo 'VERSION_LABEL=patch' >> $GITHUB_ENV)
+          || echo 'VERSION_LABEL=none' >> $GITHUB_ENV))
+      -
+        name: Display Highest-Precedent Label
+        run: echo ${{ steps.get-label.outputs.VERSION_LABEL }}
+      -
+        name: Checkout Latest
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      -
+        name: Get Directories Changed
+        # use GITHUB_ENV for multiline output
+        run: |
+          echo 'CHANGED_DIRS<<EOF' >> $GITHUB_ENV
+          git diff --name-only HEAD HEAD~1 | awk -F'/' '!a[$1]++{print $1}' >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+
+      -
+        name: Build Number
+        run: echo "$(gh pr view --json number -q .number || echo "")"
+      -
+        name: Update Microservice Versions (No Common Changes)
+        if: ${{ !contains(env.CHANGED_DIRS, 'common') && env.VERSION_LABEL != 'none' }}
+        # for directory: if gradle.properties exists in directory, update Microservice Version
+        run: |
+          for dir in $(echo "${{ env.CHANGED_DIRS }}")
+          do
+            pr="$dir/gradle.properties"
+            [ -f "$pr" ] && {
+              [ ${{ env.VERSION_LABEL }} = 'major' ] \
+                && awk 'BEGIN{FS="="} {print $1"= "(/major/ ? $2+=1 : $2=0)}' "$pr" > $pr\
+                || ([ env.VERSION_LABEL }} = 'minor' ] \
+                && awk 'BEGIN{FS="="; OFS="= "} /minor/{$2+=1; print; next} /patch/{$2=0; print; next} {print}' $pr > "$pr" \
+                || ([ env.VERSION_LABEL }} = 'patch' ] \
+                && awk 'BEGIN{FS="="} {print $1"= "(/patch/ ? $2+=1 : $2+=0)}' "$pr" > $pr \
+                || echo 'error parsing version label!'))
+            }
+          done
+          git status
+
+      -
+        name: Update Microservice Versions (With Common Changes)
+        if: ${{ contains(env.CHANGED_DIRS, 'common') && env.VERSION_LABEL != 'none' }}
+        run: |
+          for dir in $(find . -maxdepth 1 -type d -exec basename {} \;)
+          do
+            pr="$dir/gradle.properties"
+            [ -f "$pr" ] && {
+              if echo "${{ env.CHANGED_DIRS }}" | grep -q "$dir"; then             
+                echo "incrementing version normally"
+                [ ${{ env.VERSION_LABEL }} = 'major' ] \
+                  && awk 'BEGIN{FS="="} {print $1"= "(/major/ ? $2+=1 : $2=0)}' "$pr" > $pr\
+                  || ([ env.VERSION_LABEL }} = 'minor' ] \
+                  && awk 'BEGIN{FS="="; OFS="= "} /minor/{$2+=1; print; next} /patch/{$2=0; print; next} {print}' $pr > "$pr" \
+                  || ([ env.VERSION_LABEL }} = 'patch' ] \
+                  && awk 'BEGIN{FS="="} {print $1"= "(/patch/ ? $2+=1 : $2+=0)}' "$pr" > $pr \
+                  || echo 'error parsing version label!'))
+              else 
+                if grep -q 'implementation project('\'':common'\'')' "$dir/build.gradle"; then
+                  echo "incrementing patch on indirect change"
+                  awk 'BEGIN{FS="="} {print $1"= "(/patch/ ? $2+=1 : $2+=0)}' "$pr" > $pr
+                fi
+              fi
+            }
+          done
+          exit 0
+
+      -
+        name: Update Build Numbers (No Common Changes)
+        if: ${{ !contains(env.CHANGED_DIRS, 'common') }}
+        run: |
+          for dir in $(echo "${{ env.CHANGED_DIRS }}")
+          do
+            pr="$dir/gradle.properties"
+            [ -f "$pr" ] && {
+              awk 'BEGIN{FS="="} {print $1"="(/build/ ? $2=${{ github.event.pull_request.number }} : $2+=0)}' "$pr" > $pr
+            }
+          done
+
+      -
+        name: Update Build Numbers (With Common Changes)
+        if: ${{ contains(env.CHANGED_DIRS, 'common') }}
+        run: |
+          for dir in $(find . -maxdepth 1 -type d -exec basename {} \;)
+          do
+            pr="$dir/gradle.properties"
+            [ -f "$pr" ] && {
+              if [ grep -q 'implementation project('\'':common'\'')' "$dir/build.gradle" ] || \
+                 [ echo "${{ env.CHANGED_DIRS }}" | grep -q "dir" ]; then
+                awk 'BEGIN{FS="="} {print $1"="(/build/ ? $2=${{ github.event.pull_request.number }} : $2+=0)}' "$pr" > $pr
+              fi
+            }
+          done
+          exit 0
+
+      -
+        name: Setup Commit Info
+        run: |
+          git config user.name "Version Auto-Increment"
+          git config user.email "<>"
+
+      # -
+      #   name: Commit and Push
+      #   run: |
+      #   git add .
+      #   git commit -m "Version Increment for for PR #${{ github.event.pull_request.number }}"
+      #   git push -f origin main
