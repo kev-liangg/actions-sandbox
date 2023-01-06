@@ -129,9 +129,9 @@ jobs:
           git config user.name "Version Auto-Increment"
           git config user.email "<>"
 
-      # -
-      #   name: Commit and Push
-      #   run: |
-      #   git add .
-      #   git commit -m "Version Increment for for PR #${{ github.event.pull_request.number }}"
-      #   git push -f origin main
+      -
+        name: Commit and Push
+        run: |
+        git add .
+        git commit -m "Version Increment for for PR #${{ github.event.pull_request.number }}"
+        git push -f origin ${{ github.event.pull_request.head.ref }}
