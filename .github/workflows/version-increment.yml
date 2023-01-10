@@ -59,9 +59,9 @@ jobs:
             [ -f "$pr" ] && {
               [ ${{ env.VERSION_LABEL }} = 'major' ] \
                 && awk 'BEGIN{FS="="} {print $1"= "(/major/ ? $2+=1 : $2=0)}' "$pr" > $pr \
-                || ([ env.VERSION_LABEL }} = 'minor' ] \
+                || ([ ${{ env.VERSION_LABEL }} = 'minor' ] \
                 && awk 'BEGIN{FS="="; OFS="= "} /minor/{$2+=1; print; next} /patch/{$2=0; print; next} {print}' $pr > "$pr" \
-                || ([ env.VERSION_LABEL }} = 'patch' ] \
+                || ([ ${{ env.VERSION_LABEL }} = 'patch' ] \
                 && awk 'BEGIN{FS="="} {print $1"= "(/patch/ ? $2+=1 : $2+=0)}' "$pr" > $pr \
                 || echo 'error parsing version label!'))
             }
@@ -79,10 +79,10 @@ jobs:
               if echo "${{ env.CHANGED_DIRS }}" | grep -q "$dir"; then             
                 echo "incrementing version normally"
                 [ ${{ env.VERSION_LABEL }} = 'major' ] \
-                  && awk 'BEGIN{FS="="} {print $1"= "(/major/ ? $2+=1 : $2=0)}' "$pr" > $pr\
-                  || ([ env.VERSION_LABEL }} = 'minor' ] \
+                  && awk 'BEGIN{FS="="} {print $1"= "(/major/ ? $2+=1 : $2=0)}' "$pr" > $pr \
+                  || ([ ${{ env.VERSION_LABEL }} = 'minor' ] \
                   && awk 'BEGIN{FS="="; OFS="= "} /minor/{$2+=1; print; next} /patch/{$2=0; print; next} {print}' $pr > "$pr" \
-                  || ([ env.VERSION_LABEL }} = 'patch' ] \
+                  || ([ ${{ env.VERSION_LABEL }} = 'patch' ] \
                   && awk 'BEGIN{FS="="} {print $1"= "(/patch/ ? $2+=1 : $2+=0)}' "$pr" > $pr \
                   || echo 'error parsing version label!'))
               else 
