@@ -58,7 +58,7 @@ jobs:
             pr="$dir/gradle.properties"
             [ -f "$pr" ] && {
               [ ${{ env.VERSION_LABEL }} = 'major' ] \
-                && awk 'BEGIN{FS="="} {print $1"= "(/major/ ? $2+=1 : $2=0)}' "$pr" > $pr\
+                && awk 'BEGIN{FS="="} {print $1"= "(/major/ ? $2+=1 : $2=0)}' "$pr" > $pr \
                 || ([ env.VERSION_LABEL }} = 'minor' ] \
                 && awk 'BEGIN{FS="="; OFS="= "} /minor/{$2+=1; print; next} /patch/{$2=0; print; next} {print}' $pr > "$pr" \
                 || ([ env.VERSION_LABEL }} = 'patch' ] \
