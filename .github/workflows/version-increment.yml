@@ -58,11 +58,11 @@ jobs:
             pr="$dir/gradle.properties"
             [ -f "$pr" ] && {
               [ ${{ env.VERSION_LABEL }} = 'major' ] \
-                && awk 'BEGIN{FS="="} {print $1"= "(/major/ ? $2+=1 : $2=0)}' "$pr" > $pr \
+                && gawk -i inplace 'BEGIN{FS="="} {print $1"= "(/major/ ? $2+=1 : $2=0)}' "$pr" \
                 || ([ ${{ env.VERSION_LABEL }} = 'minor' ] \
-                && awk 'BEGIN{FS="="; OFS="= "} /minor/{$2+=1; print; next} /patch/{$2=0; print; next} {print}' $pr > "$pr" \
+                && gawk -i inplace 'BEGIN{FS="="; OFS="= "} /minor/{$2+=1; print; next} /patch/{$2=0; print; next} {print}' $pr \
                 || ([ ${{ env.VERSION_LABEL }} = 'patch' ] \
-                && awk 'BEGIN{FS="="} {print $1"= "(/patch/ ? $2+=1 : $2+=0)}' "$pr" > $pr \
+                && gawk -i inplace 'BEGIN{FS="="} {print $1"= "(/patch/ ? $2+=1 : $2+=0)}' "$pr" \
                 || echo 'error parsing version label!'))
             }
           done
@@ -79,16 +79,16 @@ jobs:
               if echo "${{ env.CHANGED_DIRS }}" | grep -q "$dir"; then             
                 echo "incrementing version normally"
                 [ ${{ env.VERSION_LABEL }} = 'major' ] \
-                  && awk 'BEGIN{FS="="} {print $1"= "(/major/ ? $2+=1 : $2=0)}' "$pr" > $pr \
+                  && gawk -i inplace 'BEGIN{FS="="} {print $1"= "(/major/ ? $2+=1 : $2=0)}' "$pr" \
                   || ([ ${{ env.VERSION_LABEL }} = 'minor' ] \
-                  && awk 'BEGIN{FS="="; OFS="= "} /minor/{$2+=1; print; next} /patch/{$2=0; print; next} {print}' $pr > "$pr" \
+                  && gawk -i inplace 'BEGIN{FS="="; OFS="= "} /minor/{$2+=1; print; next} /patch/{$2=0; print; next} {print}' $pr \
                   || ([ ${{ env.VERSION_LABEL }} = 'patch' ] \
-                  && awk 'BEGIN{FS="="} {print $1"= "(/patch/ ? $2+=1 : $2+=0)}' "$pr" > $pr \
+                  && gawk -i inplace 'BEGIN{FS="="} {print $1"= "(/patch/ ? $2+=1 : $2+=0)}' "$pr" \
                   || echo 'error parsing version label!'))
               else 
                 if grep -q 'implementation project('\'':common'\'')' "$dir/build.gradle"; then
                   echo "incrementing patch on indirect change"
-                  awk 'BEGIN{FS="="} {print $1"= "(/patch/ ? $2+=1 : $2+=0)}' "$pr" > $pr
+                  gawk -i inplace 'BEGIN{FS="="} {print $1"= "(/patch/ ? $2+=1 : $2+=0)}' "$pr"
                 fi
               fi
             }
@@ -103,7 +103,7 @@ jobs:
           do
             pr="$dir/gradle.properties"
             [ -f "$pr" ] && {
-              awk 'BEGIN{FS="="} {print $1"="(/build/ ? $2=${{ github.event.pull_request.number }} : $2+=0)}' "$pr" > $pr
+              gawk -i inplace 'BEGIN{FS="="} {print $1"= "(/build/ ? $2=${{ github.event.pull_request.number }} : $2+=0)}' "$pr"
             }
           done
           exit 0
@@ -118,7 +118,7 @@ jobs:
             [ -f "$pr" ] && {
               if [ grep -q 'implementation project('\'':common'\'')' "$dir/build.gradle" ] || \
                  [ echo "${{ env.CHANGED_DIRS }}" | grep -q "dir" ]; then
-                awk 'BEGIN{FS="="} {print $1"="(/build/ ? $2=${{ github.event.pull_request.number }} : $2+=0)}' "$pr" > $pr
+                gawk -i inplace 'BEGIN{FS="="} {print $1"= "(/build/ ? $2=${{ github.event.pull_request.number }} : $2+=0)}' "$pr"
               fi
             }
           done
