@@ -116,8 +116,8 @@ jobs:
           do
             pr="$dir/gradle.properties"
             [ -f "$pr" ] && {
-              if [ grep -q 'implementation project('\'':common'\'')' "$dir/build.gradle" ] || \
-                 [ echo "${{ env.CHANGED_DIRS }}" | grep -q "dir" ]; then
+              if grep -s -q 'implementation project('\'':common'\'')' "$dir/build.gradle" || \
+                  echo "${{ env.CHANGED_DIRS }}" | grep -s -q "$dir" ; then
                 gawk -i inplace 'BEGIN{FS="="} {print $1"= "(/build/ ? $2=${{ github.event.pull_request.number }} : $2+=0)}' "$pr"
               fi
             }
