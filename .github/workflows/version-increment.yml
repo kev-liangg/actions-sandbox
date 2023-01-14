@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     # verify actual merge in case PR closed without merging
     if: github.event.pull_request.merged == true
+    outputs:
+      changed-dirs: ${{ env.CHANGED_DIRS }}
     steps:
       -
         name: Determine Highest-Precedent Version Label
@@ -137,3 +139,9 @@ jobs:
           git diff-index --quiet HEAD || \
             git commit -m "Version Increment for PR #${{ github.event.pull_request.number }}"
           git push -f origin main
+
+  test-output:
+    runs-on: ubuntu-latest
+    needs: update-services
+    steps:
+      - run: echo ${{needs.update-services.outputs.CHANGED_DIRS}} 
