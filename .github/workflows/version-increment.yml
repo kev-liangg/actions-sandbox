@@ -17,7 +17,7 @@ jobs:
     # verify actual merge in case PR closed without merging
     if: github.event.pull_request.merged == true
     outputs:
-      changed-dirs: ${{ env.CHANGED_DIRS }}
+      CHANGED_DIRS: ${{ env.CHANGED_DIRS }}
     steps:
       -
         name: Determine Highest-Precedent Version Label
